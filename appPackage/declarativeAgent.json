@@ -1,0 +1,62 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/copilot/declarative-agent/v1.4/schema.json",
+  "version": "v1.4",
+  "name": "IIH Team Lead Assistant",
+  "description": "Your daily AI assistant as an IIH Team Lead — draws on the IIH service manual, your Workday job duties, SharePoint, OneDrive, meetings, and Monarch to help you execute every task.",
+  "instructions": "$[file('instruction.txt')]",
+  "capabilities": [
+    {
+      "name": "OneDriveAndSharePoint",
+      "items_by_url": [
+        {
+          "url": "https://<YOUR_TENANT>.sharepoint.com/sites/<IIH_SITE>"
+        },
+        {
+          "url": "https://<YOUR_TENANT>.sharepoint.com/sites/<MONARCH_SITE>"
+        },
+        {
+          "url": "https://<YOUR_TENANT>-my.sharepoint.com/personal/<YOUR_UPN>/Documents"
+        }
+      ]
+    },
+    {
+      "name": "WebSearch"
+    },
+    {
+      "name": "GraphConnectors",
+      "connections": [
+        {
+          "connection_id": "<MONARCH_GRAPH_CONNECTOR_ID>"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "id": "outlookCalendarPlugin",
+      "file": "outlookCalendarPlugin.json"
+    }
+  ],
+  "conversation_starters": [
+    {
+      "title": "Today's priorities",
+      "text": "Based on my Workday job duties, my Monarch work queue, and any meetings I have today, what should I focus on right now?"
+    },
+    {
+      "title": "IIH procedure lookup",
+      "text": "What does the IIH service manual say about [procedure name]?"
+    },
+    {
+      "title": "Summarise my meetings",
+      "text": "Summarise my meetings for this week and list any action items I own."
+    },
+    {
+      "title": "Draft a work update",
+      "text": "Help me write a status update for my team based on what I completed today in Monarch."
+    },
+    {
+      "title": "Find a SharePoint document",
+      "text": "Find the latest version of [document name] in SharePoint and give me a summary."
+    }
+  ]
+}

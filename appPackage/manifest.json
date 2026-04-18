@@ -1,0 +1,41 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.20/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.20",
+  "version": "1.0.0",
+  "id": "${{TEAMS_APP_ID}}",
+  "developer": {
+    "name": "IIH Team Lead",
+    "websiteUrl": "https://<YOUR_TENANT>.sharepoint.com",
+    "privacyUrl": "https://<YOUR_TENANT>.sharepoint.com/sites/<IIH_SITE>/SitePages/Privacy.aspx",
+    "termsOfUseUrl": "https://<YOUR_TENANT>.sharepoint.com/sites/<IIH_SITE>/SitePages/Terms.aspx"
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "name": {
+    "short": "IIH TL Assistant",
+    "full": "IIH Team Lead Daily Work Assistant"
+  },
+  "description": {
+    "short": "IIH Team Lead AI assistant for daily tasks",
+    "full": "A Microsoft 365 Copilot declarative agent for IIH Team Leads. Draws on the IIH service manual, Workday job duties, SharePoint, OneDrive, meetings, and Monarch to help execute daily work across the web and Microsoft 365 apps."
+  },
+  "accentColor": "#0078D4",
+  "copilotAgents": {
+    "declarativeAgents": [
+      {
+        "id": "iihTeamLeadAssistant",
+        "file": "declarativeAgent.json"
+      }
+    ]
+  },
+  "validDomains": [
+    "<YOUR_TENANT>.sharepoint.com",
+    "<YOUR_TENANT>-my.sharepoint.com"
+  ],
+  "permissions": [
+    "identity",
+    "messageTeamMembers"
+  ]
+}
