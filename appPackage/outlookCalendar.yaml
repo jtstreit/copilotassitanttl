@@ -1,0 +1,235 @@
+openapi: 3.0.3
+info:
+  title: Outlook Calendar (Microsoft Graph)
+  description: >
+    Subset of the Microsoft Graph Calendar API used by the IIH Team Lead
+    Assistant to read and create Outlook calendar events.
+  version: 1.0.0
+servers:
+  - url: https://graph.microsoft.com/v1.0
+    description: Microsoft Graph v1.0
+
+security:
+  - microsoftEntra:
+      - Calendars.Read
+      - Calendars.ReadWrite
+
+paths:
+  /me/calendarView:
+    get:
+      operationId: getTodaysMeetings
+      summary: Get calendar events for a specific time window
+      description: >
+        Returns calendar events between startDateTime and endDateTime,
+        including subject, start/end times, attendees, body, and online
+        meeting join URL.
+      parameters:
+        - name: startDateTime
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          description: Start of the time window (ISO 8601, e.g. 2025-06-10T00:00:00).
+        - name: endDateTime
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          description: End of the time window (ISO 8601, e.g. 2025-06-10T23:59:59).
+        - name: $select
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Comma-separated list of fields to include.
+        - name: $orderby
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Sort order (e.g. "start/dateTime asc").
+      responses:
+        "200":
+          description: List of calendar events.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventCollection"
+        "401":
+          description: Unauthorized.
+        "403":
+          description: Forbidden — insufficient calendar permissions.
+
+  /me/events/{eventId}:
+    get:
+      operationId: getMeetingDetails
+      summary: Get details for a specific calendar event
+      description: >
+        Returns the full details of a single calendar event including body /
+        agenda, attendees, attachments, and Teams meeting join link.
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the calendar event.
+      responses:
+        "200":
+          description: Calendar event details.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "401":
+          description: Unauthorized.
+        "404":
+          description: Event not found.
+
+  /me/events:
+    post:
+      operationId: createMeeting
+      summary: Create a new calendar event
+      description: >
+        Creates a new Outlook calendar event (optionally with a Teams online
+        meeting link) for the signed-in user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewEvent"
+      responses:
+        "201":
+          description: Event created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "400":
+          description: Bad request — invalid event data.
+        "401":
+          description: Unauthorized.
+
+components:
+  securitySchemes:
+    microsoftEntra:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://login.microsoftonline.com/common/oauth2/v2.0/authorize
+          tokenUrl: https://login.microsoftonline.com/common/oauth2/v2.0/token
+          scopes:
+            Calendars.Read: Read the user's calendars.
+            Calendars.ReadWrite: Read and write to the user's calendars.
+
+  schemas:
+    EventCollection:
+      type: object
+      properties:
+        value:
+          type: array
+          items:
+            $ref: "#/components/schemas/Event"
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique event identifier.
+        subject:
+          type: string
+          description: Meeting subject / title.
+        start:
+          $ref: "#/components/schemas/DateTimeTimeZone"
+        end:
+          $ref: "#/components/schemas/DateTimeTimeZone"
+        body:
+          type: object
+          properties:
+            contentType:
+              type: string
+              enum: [text, html]
+            content:
+              type: string
+              description: Meeting body / agenda.
+        attendees:
+          type: array
+          items:
+            $ref: "#/components/schemas/Attendee"
+        onlineMeeting:
+          type: object
+          properties:
+            joinUrl:
+              type: string
+              description: Teams or other online meeting join URL.
+        webLink:
+          type: string
+          description: URL to open the event in Outlook on the web.
+
+    NewEvent:
+      type: object
+      required:
+        - subject
+        - start
+        - end
+      properties:
+        subject:
+          type: string
+          description: Meeting subject / title.
+        start:
+          $ref: "#/components/schemas/DateTimeTimeZone"
+        end:
+          $ref: "#/components/schemas/DateTimeTimeZone"
+        body:
+          type: object
+          properties:
+            contentType:
+              type: string
+              enum: [text, html]
+              default: html
+            content:
+              type: string
+              description: Optional agenda or meeting notes.
+        attendees:
+          type: array
+          items:
+            $ref: "#/components/schemas/Attendee"
+        isOnlineMeeting:
+          type: boolean
+          default: true
+          description: When true, a Teams online meeting link is added automatically.
+        onlineMeetingProvider:
+          type: string
+          enum: [teamsForBusiness]
+          default: teamsForBusiness
+
+    Attendee:
+      type: object
+      properties:
+        emailAddress:
+          type: object
+          properties:
+            address:
+              type: string
+              description: Attendee email address.
+            name:
+              type: string
+              description: Attendee display name.
+        type:
+          type: string
+          enum: [required, optional, resource]
+
+    DateTimeTimeZone:
+      type: object
+      properties:
+        dateTime:
+          type: string
+          format: date-time
+          description: ISO 8601 date-time string (e.g. 2025-06-10T09:00:00).
+        timeZone:
+          type: string
+          description: IANA or Windows time zone name (e.g. "UTC", "Eastern Standard Time").
